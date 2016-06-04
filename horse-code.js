@@ -4,7 +4,7 @@ horseCodeModule.controller("horseController", function() {
     this.ascii;
 
     this.horseMap = function(character) {
-        switch(character) {
+        switch(character.toLowerCase()) {
             case 'a': return "🐎 🐴";
             case 'b': return "🐴 🐎 🐎 🐎";
             case 'c': return "🐴 🐎 🐴 🐎";
@@ -40,7 +40,7 @@ horseCodeModule.controller("horseController", function() {
         if(ascii != undefined && ascii != "") {
             return ascii
                 .split('')
-                .map(String.toLowerCase)
+                //.map(String.toLowerCase)
                 .map(this.horseMap)
                 .reduce(function (current, previous) {
                     return current + "   " + previous;
