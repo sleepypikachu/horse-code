@@ -13,7 +13,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
         <style>
-            input {
+            ul, p, h2, input {
                 display: block;
                 width:80%;
                 margin-top:20px;
@@ -24,8 +24,19 @@
     </head>
     <body>
         <div ng-app="horseCode" ng-controller="horseController as ctrl">
-            <input type="text" ng-model="ctrl.ascii">
+            <h2>Text</h2>
+	    <input type="text" ng-model="ctrl.ascii">
+	    <h2>Horse Code</h2>
             <input type="text" ng-readonly="true" ng-value="ctrl.horse(ctrl.ascii)">
+	    <p>
+	    Because there are two horse emoji, one is short, one is long, and horse rhymes with morse.<br>
+	    Issues (pull requests welcome):
+	    	<ul>
+			<li>Currently one way, decoding to come.</li>
+			<li>Site styling is bad because I'm bad at it.</li>
+			<li>Unkown characters are encodes as unicorns, this is cool but has the drawback of not being widely rendered and completely un-decodable.</li>
+	    	</ul>
+	    </p>
         </div>
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
         <script src="./horse-code.js"></script>
