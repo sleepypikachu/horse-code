@@ -38,7 +38,7 @@ horseCodeModule.controller("horseController",['LABELS', function(LABELS) {
             case 'x': return "🐎🐴🐴🐎";
             case 'y': return "🐎🐴🐎🐎";
             case 'z': return "🐎🐎🐴🐴";
-            case ' ': return " ";
+            case ' ': return "​";
     	    case '.': return "🐴🐎🐴🐎🐴🐎";
     	    case ',': return "🐎🐎🐴🐴🐎🐎";
     	    case '?': return "🐴🐴🐎🐎🐴🐴";
@@ -73,7 +73,7 @@ horseCodeModule.controller("horseController",['LABELS', function(LABELS) {
 
     this.revHorseMap = function(multiSymbol) {
         switch(multiSymbol){
-            case " ": return ' ';
+	    case "​": return ' ';
             case "🦄" : return '?';
             case "🐴🐎": return 'a';
             case "🐎🐴🐴🐴": return 'b';
