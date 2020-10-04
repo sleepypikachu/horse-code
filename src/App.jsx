@@ -1,4 +1,4 @@
-import React, {useReducer, useRef} from 'react';
+import React, {useReducer, useRef, useEffect} from 'react';
 import './App.css';
 import {HORSE_TO_ASCII, ASCII_TO_HORSE, asciiToHorse, horseToAscii} from './translate';
 import {Button, Grid, Container, ButtonGroup} from "@material-ui/core";
@@ -59,7 +59,7 @@ const reducer = (state, action) => {
 
 const initialState = {
     direction: ASCII_TO_HORSE,
-    text: 'A horse, of course!',
+    text: '',
     showAbout: false,
 };
 
@@ -100,14 +100,20 @@ function App() {
         dispatch({type: PASTE_TEXT, value: evt.clipboardData.getData("text")});
     }
 
+    useEffect(() => {
+        if (ref && ref.current) {
+            ref.current.focus();
+        }
+    });
+
     return (
-    <div className="App">
+    <div className="App" onPaste={onPaste}>
         <ForkMeOnGithub repo={"https://github.com/sleepypikachu/horse-code"}/>
         <Container>
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
-                    <TextField inputRef={ref} fullWidth={true} label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"} value={text} onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})} onPaste={onPaste}/>
+                    <TextField placeholder={direction === ASCII_TO_HORSE ? 'A horse, of course!' : asciiToHorse('A horse, of course!')} inputRef={ref} fullWidth={true} label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"} value={text} onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})} onPaste={onPaste}/>
                 </Grid>
                 <Grid item>
                     <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? "Text": "Horse Code"} value={translation}/>
