@@ -100,6 +100,14 @@ function App() {
         dispatch({type: PASTE_TEXT, value: evt.clipboardData.getData("text")});
     }
 
+    const onCopy = (evt) => {
+        if (evt.target && (evt.target.selectionStart === evt.target.selectionEnd) ) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            setClipboard(translation);
+        }
+    }
+
     useEffect(() => {
         if (ref && ref.current) {
             ref.current.focus();
@@ -107,13 +115,20 @@ function App() {
     });
 
     return (
-    <div className="App" onPaste={onPaste}>
+    <div className="App" onPaste={onPaste} onCopy={onCopy}>
         <ForkMeOnGithub repo={"https://github.com/sleepypikachu/horse-code"}/>
         <Container>
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
-                    <TextField placeholder={direction === ASCII_TO_HORSE ? 'A horse, of course!' : asciiToHorse('A horse, of course!')} inputRef={ref} fullWidth={true} label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"} value={text} onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})} onPaste={onPaste}/>
+                    <TextField placeholder={direction === ASCII_TO_HORSE ? 'A horse, of course!' : asciiToHorse('A horse, of course!')}
+                               inputRef={ref}
+                               fullWidth={true}
+                               label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"}
+                               value={text}
+                               onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})}
+                               onCopy={onCopy}
+                               onPaste={onPaste}/>
                 </Grid>
                 <Grid item>
                     <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? "Text": "Horse Code"} value={translation}/>
