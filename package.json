@@ -12,7 +12,8 @@
     "react": "^16.13.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-dom": "^16.13.1",
-    "react-scripts": "3.4.3"
+    "react-scripts": "3.4.3",
+    "use-clippy": "^1.0.6"
   },
   "scripts": {
     "start": "react-scripts start",

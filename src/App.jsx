@@ -5,8 +5,15 @@ import {Button, Grid, Container, ButtonGroup} from "@material-ui/core";
 import ForkMeOnGithub from 'fork-me-on-github';
 import TextField from "@material-ui/core/TextField";
 import AboutDialog from "./components/AboutDialog";
+import useClippy from "use-clippy";
+import {Assignment, Bathtub, Cached, FileCopy} from "@material-ui/icons";
+import green from "@material-ui/core/colors/green";
+import withStyles from "@material-ui/core/styles/withStyles";
+import withWidth from "@material-ui/core/withWidth";
+import Hidden from "@material-ui/core/Hidden";
 
 const TOGGLE = 'TOGGLE';
+const PASTE_TEXT = 'PASTE_TEXT';
 const CHANGE_TEXT = 'CHANGE_TEXT';
 const OPEN_DIALOG = 'OPEN_DIALOG';
 const CLOSE_DIALOG = 'CLOSE_DIALOG';
@@ -25,6 +32,13 @@ const reducer = (state, action) => {
                 return {
                     ...state,
                     text: action.value,
+                }
+            case PASTE_TEXT:
+                const first = action.value.trimStart().slice(0, 2);
+                return {
+                    ...state,
+                    text: action.value,
+                    direction: (first === '🐎' || first === '🐴') ? HORSE_TO_ASCII : ASCII_TO_HORSE,
                 }
             case OPEN_DIALOG:
                 return {
@@ -49,8 +63,24 @@ const initialState = {
     showAbout: false,
 };
 
+const ContentButton = withStyles(theme => ({
+    root: {
+        color: green[500],
+        '&:hover': {
+            color: theme.palette.getContrastText(green[500]),
+            backgroundColor: green[500],
+        },
+    },
+}))(Button);
+
+const SmXsButton = withWidth()((props) => {
+    const {width} = props;
+    return (width === 'sm' || width === 'xs') && <Button {...props}/>
+})
+
 function App() {
 
+    const [clipboard, setClipboard] = useClippy();
     const [{direction, text, showAbout}, dispatch] = useReducer(reducer, initialState);
     const ref = useRef(null);
 
@@ -59,9 +89,15 @@ function App() {
     const translationFunction = direction === HORSE_TO_ASCII ? horseToAscii : asciiToHorse;
     const translation = translationFunction(text);
 
-    const copy = () => {
-        navigator.clipboard.writeText(translation)
-            .catch(console.error);
+    const copy = () => setClipboard(translation);
+
+    const paste = () => dispatch({type: PASTE_TEXT, value: clipboard});
+
+    const clear = () => dispatch({type: CHANGE_TEXT, value: ''});
+
+    const onPaste = (evt) => {
+        evt.preventDefault();
+        dispatch({type: PASTE_TEXT, value: evt.clipboardData.getData("text")});
     }
 
     return (
@@ -71,17 +107,24 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
-                    <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"} value={text} onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})}/>
+                    <TextField inputRef={ref} fullWidth={true} label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"} value={text} onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})} onPaste={onPaste}/>
                 </Grid>
                 <Grid item>
-                    <TextField inputRef={ref} fullWidth={true} label={direction === HORSE_TO_ASCII ? "Text": "Horse Code"} value={translation}/>
+                    <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? "Text": "Horse Code"} value={translation}/>
                 </Grid>
-                <Grid item container justify={"flex-end"}>
-                    <ButtonGroup variant={"contained"}>
-                        <Button onClick={() => dispatch({type: OPEN_DIALOG})}>About</Button>
-                        <Button onClick={copy} color={"secondary"}>Copy</Button>
-                        <Button color={"primary"} onClick={toggle}>Toggle</Button>
-                    </ButtonGroup>
+                <Grid item container justify={"space-between"}>
+                    <Hidden smDown={true}>
+                        <Button variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</Button>
+                    </Hidden>
+                    <Grid item sm={12} xs={12} md={"auto"}>
+                        <ButtonGroup variant={"outlined"}>
+                            <SmXsButton variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</SmXsButton>
+                            <ContentButton onClick={copy} startIcon={<FileCopy/>}>Copy</ContentButton>
+                            {(clipboard && clipboard.length > 0) && <ContentButton onClick={e => paste(e)} startIcon={<Assignment/>}>Paste</ContentButton>}
+                            <ContentButton onClick={clear} startIcon={<Bathtub/>}>Clear</ContentButton>
+                            <Button color={"primary"} onClick={toggle} startIcon={<Cached/>}>Toggle</Button>
+                        </ButtonGroup>
+                    </Grid>
                 </Grid>
             </Grid>
         </Container>
