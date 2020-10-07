@@ -6,6 +6,7 @@ import ForkMeOnGithub from 'fork-me-on-github';
 import TextField from "@material-ui/core/TextField";
 import AboutDialog from "./components/AboutDialog";
 import useClippy from "use-clippy";
+import {useDebounceCallback} from '@react-hook/debounce';
 import {Assignment, Bathtub, Cached, FileCopy} from "@material-ui/icons";
 import green from "@material-ui/core/colors/green";
 import withStyles from "@material-ui/core/styles/withStyles";
@@ -108,6 +109,13 @@ function App() {
         }
     }
 
+
+    const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
+    const onChange = evt => {
+        evt.persist();
+        debouncedDispatchChangeText(evt);
+    }
+
     useEffect(() => {
         if (ref && ref.current) {
             ref.current.focus();
@@ -121,14 +129,16 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
-                    <TextField placeholder={direction === ASCII_TO_HORSE ? 'A horse, of course!' : asciiToHorse('A horse, of course!')}
-                               inputRef={ref}
-                               fullWidth={true}
-                               label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"}
-                               value={text}
-                               onChange={(evt) => dispatch({type: CHANGE_TEXT, value: evt.target.value})}
-                               onCopy={onCopy}
-                               onPaste={onPaste}/>
+                    <TextField
+                        key={direction}
+                        placeholder={direction === ASCII_TO_HORSE ? 'A horse, of course!' : asciiToHorse('A horse, of course!')}
+                        inputRef={ref}
+                        fullWidth={true}
+                        label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"}
+                        defaultValue={text}
+                        onChange={onChange}
+                        onCopy={onCopy}
+                        onPaste={onPaste}/>
                 </Grid>
                 <Grid item>
                     <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? "Text": "Horse Code"} value={translation}/>
