@@ -1,7 +1,7 @@
-import React, {useReducer, useRef, useEffect} from 'react';
+import React, {useEffect, useReducer, useRef} from 'react';
 import './App.css';
-import {HORSE_TO_ASCII, ASCII_TO_HORSE, asciiToHorse, horseToAscii} from './translate';
-import {Button, Grid, Container, ButtonGroup} from "@material-ui/core";
+import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
+import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
 import ForkMeOnGithub from 'fork-me-on-github';
 import TextField from "@material-ui/core/TextField";
 import AboutDialog from "./components/AboutDialog";
@@ -86,6 +86,12 @@ const SmXsButton = withWidth()((props) => {
     return (width === 'sm' || width === 'xs') && <Button {...props}/>
 })
 
+const SmXsColumn = withWidth()((props) => {
+    const {width} = props;
+    const orientation = (width === 'sm' || width === 'xs') ? "vertical" : (props.orientation || "horizontal");
+    return <ButtonGroup {...props} orientation={orientation}/>
+})
+
 const A_HORSE_OF_COURSE_ASCII = 'A horse, of course!';
 const A_HORSE_OF_COURSE_HORSE = asciiToHorse(A_HORSE_OF_COURSE_ASCII);
 const LABEL_HORSE_CODE = "Horse Code";
@@ -158,12 +164,12 @@ function App() {
                         <Button variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</Button>
                     </Hidden>
                     <Grid item sm={12} xs={12} md={"auto"}>
-                        <ButtonGroup variant={"outlined"}>
+                        <SmXsColumn variant={"outlined"}>
                             <SmXsButton variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</SmXsButton>
                             <ContentButton onClick={copy} startIcon={<FileCopy/>}>Copy</ContentButton>
                             <ContentButton onClick={clear} startIcon={<Bathtub/>}>Clear</ContentButton>
                             <Button color={"primary"} onClick={toggle} startIcon={<Cached/>}>Toggle</Button>
-                        </ButtonGroup>
+                        </SmXsColumn>
                     </Grid>
                 </Grid>
             </Grid>
