@@ -20,26 +20,32 @@ const OPEN_DIALOG = 'OPEN_DIALOG';
 const CLOSE_DIALOG = 'CLOSE_DIALOG';
 
 const reducer = (state, action) => {
-    const {direction, text} = state;
+    const {direction, text, translation} = state;
+    const translationFunction = direction === ASCII_TO_HORSE ? asciiToHorse : horseToAscii;
     if (action && action.type) {
         switch (action.type) {
             case TOGGLE:
                 return {
                     ...state,
                     direction: direction === HORSE_TO_ASCII ? ASCII_TO_HORSE : HORSE_TO_ASCII,
-                    text: direction === ASCII_TO_HORSE ? asciiToHorse(text) : horseToAscii(text),
+                    text: translation,
+                    translation: text,
                 }
             case CHANGE_TEXT:
                 return {
                     ...state,
                     text: action.value,
+                    translation: translationFunction(action.value),
                 }
             case PASTE_TEXT:
                 const first = action.value.trimStart().slice(0, 2);
+                const pasteDirection = (first === '🐎' || first === '🐴') ? HORSE_TO_ASCII : ASCII_TO_HORSE;
+                const pasteTranslation = pasteDirection === ASCII_TO_HORSE ? asciiToHorse : horseToAscii;
                 return {
                     ...state,
                     text: action.value,
-                    direction: (first === '🐎' || first === '🐴') ? HORSE_TO_ASCII : ASCII_TO_HORSE,
+                    translation: pasteTranslation,
+                    direction: pasteDirection,
                 }
             case OPEN_DIALOG:
                 return {
@@ -61,6 +67,7 @@ const reducer = (state, action) => {
 const initialState = {
     direction: ASCII_TO_HORSE,
     text: '',
+    translation: '',
     showAbout: false,
 };
 
@@ -79,20 +86,20 @@ const SmXsButton = withWidth()((props) => {
     return (width === 'sm' || width === 'xs') && <Button {...props}/>
 })
 
+const A_HORSE_OF_COURSE_ASCII = 'A horse, of course!';
+const A_HORSE_OF_COURSE_HORSE = asciiToHorse(A_HORSE_OF_COURSE_ASCII);
+const LABEL_HORSE_CODE = "Horse Code";
+const LABEL_TEXT = "Text";
+
 function App() {
 
-    const [clipboard, setClipboard] = useClippy();
-    const [{direction, text, showAbout}, dispatch] = useReducer(reducer, initialState);
+    const [, setClipboard] = useClippy();
+    const [{direction, text, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
     const ref = useRef(null);
 
     const toggle = () => dispatch({type: TOGGLE});
 
-    const translationFunction = direction === HORSE_TO_ASCII ? horseToAscii : asciiToHorse;
-    const translation = translationFunction(text);
-
     const copy = () => setClipboard(translation);
-
-    const paste = () => dispatch({type: PASTE_TEXT, value: clipboard});
 
     const clear = () => dispatch({type: CHANGE_TEXT, value: ''});
 
@@ -119,6 +126,9 @@ function App() {
     useEffect(() => {
         if (ref && ref.current) {
             ref.current.focus();
+            if (text === '') {
+                ref.current.value = '';
+            }
         }
     });
 
@@ -131,17 +141,17 @@ function App() {
                 <Grid item>
                     <TextField
                         key={direction}
-                        placeholder={direction === ASCII_TO_HORSE ? 'A horse, of course!' : asciiToHorse('A horse, of course!')}
+                        placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
                         inputRef={ref}
                         fullWidth={true}
-                        label={direction === HORSE_TO_ASCII ? "Horse Code" : "Text"}
+                        label={direction === HORSE_TO_ASCII ? LABEL_HORSE_CODE : LABEL_TEXT}
                         defaultValue={text}
                         onChange={onChange}
                         onCopy={onCopy}
                         onPaste={onPaste}/>
                 </Grid>
                 <Grid item>
-                    <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? "Text": "Horse Code"} value={translation}/>
+                    <TextField fullWidth={true} label={direction === HORSE_TO_ASCII ? LABEL_TEXT: LABEL_HORSE_CODE} value={translation}/>
                 </Grid>
                 <Grid item container justify={"space-between"}>
                     <Hidden smDown={true}>
@@ -151,7 +161,6 @@ function App() {
                         <ButtonGroup variant={"outlined"}>
                             <SmXsButton variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</SmXsButton>
                             <ContentButton onClick={copy} startIcon={<FileCopy/>}>Copy</ContentButton>
-                            {(clipboard && clipboard.length > 0) && <ContentButton onClick={e => paste(e)} startIcon={<Assignment/>}>Paste</ContentButton>}
                             <ContentButton onClick={clear} startIcon={<Bathtub/>}>Clear</ContentButton>
                             <Button color={"primary"} onClick={toggle} startIcon={<Cached/>}>Toggle</Button>
                         </ButtonGroup>
