@@ -7,7 +7,7 @@ import TextField from "@material-ui/core/TextField";
 import AboutDialog from "./components/AboutDialog";
 import useClippy from "use-clippy";
 import {useDebounceCallback} from '@react-hook/debounce';
-import {Assignment, Bathtub, Cached, FileCopy} from "@material-ui/icons";
+import {Bathtub, Cached, FileCopy} from "@material-ui/icons";
 import green from "@material-ui/core/colors/green";
 import withStyles from "@material-ui/core/styles/withStyles";
 import withWidth from "@material-ui/core/withWidth";
