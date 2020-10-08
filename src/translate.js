@@ -134,8 +134,8 @@ export const asciiToHorse = (sentence) => {
         return sentence.split(' ')
             .map(w => w.split('')
                 .map(horseMap)
-                .join('‌'))
-            .join(' ');
+                .join(' ‌'))
+            .join('   ');
     } else {
         return '';
     }
