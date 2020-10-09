@@ -36,7 +36,7 @@ const reducer = (state, action) => {
                     ...state,
                     text: action.value,
                     translation: translationFunction(action.value),
-                    readableHorse: asciiToReadableHorse(action.value)
+                    readableHorse:  direction === ASCII_TO_HORSE ? asciiToReadableHorse(action.value) : ''
                 }
             case PASTE_TEXT:
                 const first = action.value.trimStart().slice(0, 2);
