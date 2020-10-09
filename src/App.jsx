@@ -1,6 +1,6 @@
 import React, {useEffect, useReducer, useRef} from 'react';
 import './App.css';
-import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
+import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii, asciiToReadableHorse} from './translate';
 import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
 import ForkMeOnGithub from 'fork-me-on-github';
 import TextField from "@material-ui/core/TextField";
@@ -36,6 +36,7 @@ const reducer = (state, action) => {
                     ...state,
                     text: action.value,
                     translation: translationFunction(action.value),
+                    readableHorse: asciiToReadableHorse(action.value)
                 }
             case PASTE_TEXT:
                 const first = action.value.trimStart().slice(0, 2);
@@ -68,6 +69,7 @@ const initialState = {
     direction: ASCII_TO_HORSE,
     text: '',
     translation: '',
+    readableHorse: '',
     showAbout: false,
 };
 
@@ -100,7 +102,7 @@ const LABEL_TEXT = "Text";
 function App() {
 
     const [, setClipboard] = useClippy();
-    const [{direction, text, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
+    const [{direction, text, readableHorse, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
     const ref = useRef(null);
 
     const toggle = () => dispatch({type: TOGGLE});
