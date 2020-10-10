@@ -44,7 +44,7 @@ const reducer = (state, action) => {
                 return {
                     ...state,
                     text: action.value,
-                    translation: pasteTranslation,
+                    translation:  pasteTranslation(action.value),
                     direction: pasteDirection,
                 }
             case OPEN_DIALOG:
