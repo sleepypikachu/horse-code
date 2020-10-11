@@ -18,6 +18,8 @@ const PASTE_TEXT = 'PASTE_TEXT';
 const CHANGE_TEXT = 'CHANGE_TEXT';
 const OPEN_DIALOG = 'OPEN_DIALOG';
 const CLOSE_DIALOG = 'CLOSE_DIALOG';
+const TYPE_HORSE = 'TYPE_HORSE';
+const TYPING = 'TYPING';
 
 const reducer = (state, action) => {
     const {direction, text, translation} = state;
@@ -37,6 +39,19 @@ const reducer = (state, action) => {
                     text: action.value,
                     translation: translationFunction(action.value),
                 }
+            case TYPING:
+                return {
+                    ...state,
+                    text: action.value,
+                    translation: translationFunction(action.value),
+                }
+            case TYPE_HORSE:
+                return {
+                    ...state,
+                    text: text + action.value,
+                    translation: horseToAscii(text + action.value),
+                    direction: HORSE_TO_ASCII,
+                }    
             case PASTE_TEXT:
                 const first = action.value.trimStart().slice(0, 2);
                 const pasteDirection = (first === '🐎' || first === '🐴') ? HORSE_TO_ASCII : ASCII_TO_HORSE;
@@ -121,20 +136,27 @@ function App() {
             setClipboard(translation);
         }
     }
+    const onHorseClick = (e) => {
+        e.target.innerHTML === '🐎' ? dispatch({type: TYPE_HORSE, value:'🐎', text:'🐎'}) : dispatch({type: TYPE_HORSE, value:'🐴', text: '🐴'})
+    }
+    const onSpaceClick = (e) => {
+        dispatch({type: TYPE_HORSE, value:' ', text:' '});
+    }
 
 
     const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
     const onChange = evt => {
+        dispatch({type: TYPING, value: evt.target.value})
         evt.persist();
         debouncedDispatchChangeText(evt);
     }
 
     useEffect(() => {
         if (ref && ref.current) {
-            ref.current.focus();
-            if (text === '') {
-                ref.current.value = '';
-            }
+            // ref.current.focus();
+            // if (text === '') {
+            //     ref.current.value = '';
+            // }
         }
     });
 
@@ -145,13 +167,16 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
+                    <Button color={"primary"} onClick={onHorseClick}>🐎</Button>
+                    <Button color={"primary"} onClick={onHorseClick}>🐴</Button>
+                    <Button color={"primary"} onClick={onSpaceClick}>space</Button>
                     <TextField
                         key={direction}
                         placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
                         inputRef={ref}
                         fullWidth={true}
                         label={direction === HORSE_TO_ASCII ? LABEL_HORSE_CODE : LABEL_TEXT}
-                        defaultValue={text}
+                        value={text}
                         onChange={onChange}
                         onCopy={onCopy}
                         onPaste={onPaste}
