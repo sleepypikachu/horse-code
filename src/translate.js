@@ -121,8 +121,8 @@ const revHorseMap = (multiSymbol) => {
 
 export const horseToAscii = (sentence) => {
     if (sentence && sentence.length) {
-        return sentence.split(' ')
-            .map(w => w.split('‌').map(revHorseMap).join(''))
+        return sentence.split('  ')
+            .map(w => w.split(' ').map(revHorseMap).join(''))
             .join(' ');
     } else {
         return '';
@@ -134,20 +134,8 @@ export const asciiToHorse = (sentence) => {
         return sentence.split(' ')
             .map(w => w.split('')
                 .map(horseMap)
-                .join('‌'))
-            .join(' ');
-    } else {
-        return '';
-    }
-};
-
-export const asciiToReadableHorse = (sentence) => {
-    if (sentence && sentence.length) {
-        return sentence.split(' ')
-            .map(w => w.split('')
-                .map(horseMap)
-                .join(' ‌'))
-            .join('   ');
+                .join(' '))
+            .join('  ');
     } else {
         return '';
     }
