@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useRef} from 'react';
+import React, {useEffect, useReducer} from 'react';
 import './App.css';
 import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
 import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
@@ -116,7 +116,6 @@ function App() {
 
     const [, setClipboard] = useClippy();
     const [{direction, text, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
-    const ref = useRef(null);
 
     const toggle = () => dispatch({type: TOGGLE});
 
@@ -151,15 +150,6 @@ function App() {
         debouncedDispatchChangeText(evt);
     }
 
-    useEffect(() => {
-        if (ref && ref.current) {
-            // ref.current.focus();
-            // if (text === '') {
-            //     ref.current.value = '';
-            // }
-        }
-    });
-
     return (
     <div className="App" onPaste={onPaste} onCopy={onCopy}>
         <ForkMeOnGithub repo={"https://github.com/sleepypikachu/horse-code"}/>
@@ -167,13 +157,12 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
-                    <Button color={"primary"} onClick={onHorseClick}>🐎</Button>
-                    <Button color={"primary"} onClick={onHorseClick}>🐴</Button>
+                    <Button color={"primary"} onClick={onHorseClick}><span role="img" aria-label="long horse">🐎</span></Button>
+                    <Button color={"primary"} onClick={onHorseClick}><span role="img" aria-label="short horse">🐴</span></Button>
                     <Button color={"primary"} onClick={onSpaceClick}>space</Button>
                     <TextField
                         key={direction}
                         placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
-                        inputRef={ref}
                         fullWidth={true}
                         label={direction === HORSE_TO_ASCII ? LABEL_HORSE_CODE : LABEL_TEXT}
                         value={text}
