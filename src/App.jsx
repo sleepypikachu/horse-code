@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer} from 'react';
+import React, {useReducer} from 'react';
 import './App.css';
 import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
 import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
@@ -107,6 +107,19 @@ const SmXsColumn = withWidth()((props) => {
     return <ButtonGroup {...props} orientation={orientation}/>
 })
 
+const smallText = {
+    display: 'block',
+    fontSize: '8px',
+    marginTop: 0,
+    color: 'grey',
+  };
+
+  const StyledButton = withStyles({
+    label: {
+      flexDirection: 'column',
+    },
+  })(Button);
+
 const A_HORSE_OF_COURSE_ASCII = 'A horse, of course!';
 const A_HORSE_OF_COURSE_HORSE = asciiToHorse(A_HORSE_OF_COURSE_ASCII);
 const LABEL_HORSE_CODE = "Horse Code";
@@ -135,13 +148,6 @@ function App() {
             setClipboard(translation);
         }
     }
-    const onHorseClick = (e) => {
-        e.target.innerHTML === '🐎' ? dispatch({type: TYPE_HORSE, value:'🐎', text:'🐎'}) : dispatch({type: TYPE_HORSE, value:'🐴', text: '🐴'})
-    }
-    const onSpaceClick = (e) => {
-        dispatch({type: TYPE_HORSE, value:' ', text:' '});
-    }
-
 
     const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
     const onChange = evt => {
@@ -157,9 +163,14 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
-                    <Button color={"primary"} onClick={onHorseClick}><span role="img" aria-label="long horse">🐎</span></Button>
-                    <Button color={"primary"} onClick={onHorseClick}><span role="img" aria-label="short horse">🐴</span></Button>
-                    <Button color={"primary"} onClick={onSpaceClick}>space</Button>
+                    {direction === HORSE_TO_ASCII && (
+                        <>
+                            <StyledButton  onClick={()=>{dispatch({type: TYPE_HORSE, value:'🐴', text: '🐴'})}}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
+                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:'🐎', text:'🐎'})}}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
+                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:' ', text:' '})}}>space<p style={smallText}>End of character</p></StyledButton> 
+                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:'  ', text:' '})}}>double space<p style={smallText}>End of word</p></StyledButton> 
+                        </>
+                    )}
                     <TextField
                         key={direction}
                         placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
