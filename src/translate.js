@@ -121,7 +121,7 @@ const revHorseMap = (multiSymbol) => {
 
 export const horseToAscii = (sentence) => {
     if (sentence && sentence.length) {
-        return sentence.split('  ')
+        return sentence.trim().split('  ')
             .map(w => w.split(' ').map(revHorseMap).join(''))
             .join(' ');
     } else {
