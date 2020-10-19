@@ -1,4 +1,4 @@
-import React, {useReducer} from 'react';
+import React, {useEffect, useReducer, useRef} from 'react';
 import './App.css';
 import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
 import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
@@ -18,8 +18,6 @@ const PASTE_TEXT = 'PASTE_TEXT';
 const CHANGE_TEXT = 'CHANGE_TEXT';
 const OPEN_DIALOG = 'OPEN_DIALOG';
 const CLOSE_DIALOG = 'CLOSE_DIALOG';
-const TYPE_HORSE = 'TYPE_HORSE';
-const TYPING = 'TYPING';
 
 const reducer = (state, action) => {
     const {direction, text, translation} = state;
@@ -39,19 +37,6 @@ const reducer = (state, action) => {
                     text: action.value,
                     translation: translationFunction(action.value),
                 }
-            case TYPING:
-                return {
-                    ...state,
-                    text: action.value,
-                    translation: translationFunction(action.value),
-                }
-            case TYPE_HORSE:
-                return {
-                    ...state,
-                    text: text + action.value,
-                    translation: horseToAscii(text + action.value),
-                    direction: HORSE_TO_ASCII,
-                }    
             case PASTE_TEXT:
                 const first = action.value.trimStart().slice(0, 2);
                 const pasteDirection = (first === '🐎' || first === '🐴') ? HORSE_TO_ASCII : ASCII_TO_HORSE;
@@ -129,12 +114,28 @@ function App() {
 
     const [, setClipboard] = useClippy();
     const [{direction, text, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
+    const ref = useRef(null);
 
     const toggle = () => dispatch({type: TOGGLE});
 
     const copy = () => setClipboard(translation);
 
     const clear = () => dispatch({type: CHANGE_TEXT, value: ''});
+
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+    const nativeAppendTextArea = s => () => {
+        if (ref && ref.current) {
+            const input = ref.current;
+            nativeInputValueSetter.call(input, input.value + s);
+            const evt = new Event('input', { bubbles: true } );
+            input.dispatchEvent(evt);
+        }
+    }
+
+    const appendShort = nativeAppendTextArea('🐴');
+    const appendLong = nativeAppendTextArea('🐎');
+    const appendSpace = nativeAppendTextArea(' ');
+    const appendDoubleSpace = nativeAppendTextArea('  ');
 
     const onPaste = (evt) => {
         evt.preventDefault();
@@ -151,10 +152,18 @@ function App() {
 
     const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
     const onChange = evt => {
-        dispatch({type: TYPING, value: evt.target.value})
         evt.persist();
         debouncedDispatchChangeText(evt);
     }
+
+    useEffect(() => {
+        if (ref && ref.current) {
+            ref.current.focus();
+            if (text === '') {
+                ref.current.value = '';
+            }
+        }
+    });
 
     return (
     <div className="App" onPaste={onPaste} onCopy={onCopy}>
@@ -165,18 +174,19 @@ function App() {
                 <Grid item>
                     {direction === HORSE_TO_ASCII && (
                         <>
-                            <StyledButton  onClick={()=>{dispatch({type: TYPE_HORSE, value:'🐴', text: '🐴'})}}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
-                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:'🐎', text:'🐎'})}}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
-                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:' ', text:' '})}}>space<p style={smallText}>End of character</p></StyledButton> 
-                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:'  ', text:' '})}}>double space<p style={smallText}>End of word</p></StyledButton> 
+                            <StyledButton  onClick={() => appendShort()}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
+                            <StyledButton onClick={() => appendLong()}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
+                            <StyledButton onClick={() => appendSpace()}>space<p style={smallText}>End of character</p></StyledButton>
+                            <StyledButton onClick={() => appendDoubleSpace()}>double space<p style={smallText}>End of word</p></StyledButton>
                         </>
                     )}
                     <TextField
                         key={direction}
                         placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
+                        inputRef={ref}
                         fullWidth={true}
                         label={direction === HORSE_TO_ASCII ? LABEL_HORSE_CODE : LABEL_TEXT}
-                        value={text}
+                        defaultValue={text}
                         onChange={onChange}
                         onCopy={onCopy}
                         onPaste={onPaste}
