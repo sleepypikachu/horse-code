@@ -92,6 +92,19 @@ const SmXsColumn = withWidth()((props) => {
     return <ButtonGroup {...props} orientation={orientation}/>
 })
 
+const smallText = {
+    display: 'block',
+    fontSize: '8px',
+    marginTop: 0,
+    color: 'grey',
+  };
+
+  const StyledButton = withStyles({
+    label: {
+      flexDirection: 'column',
+    },
+  })(Button);
+
 const A_HORSE_OF_COURSE_ASCII = 'A horse, of course!';
 const A_HORSE_OF_COURSE_HORSE = asciiToHorse(A_HORSE_OF_COURSE_ASCII);
 const LABEL_HORSE_CODE = "Horse Code";
@@ -109,6 +122,21 @@ function App() {
 
     const clear = () => dispatch({type: CHANGE_TEXT, value: ''});
 
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+    const nativeAppendTextArea = s => () => {
+        if (ref && ref.current) {
+            const input = ref.current;
+            nativeInputValueSetter.call(input, input.value + s);
+            const evt = new Event('input', { bubbles: true } );
+            input.dispatchEvent(evt);
+        }
+    }
+
+    const appendShort = nativeAppendTextArea('🐴');
+    const appendLong = nativeAppendTextArea('🐎');
+    const appendSpace = nativeAppendTextArea(' ');
+    const appendDoubleSpace = nativeAppendTextArea('  ');
+
     const onPaste = (evt) => {
         evt.preventDefault();
         dispatch({type: PASTE_TEXT, value: evt.clipboardData.getData("text")});
@@ -121,7 +149,6 @@ function App() {
             setClipboard(translation);
         }
     }
-
 
     const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
     const onChange = evt => {
@@ -145,6 +172,14 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
+                    {direction === HORSE_TO_ASCII && (
+                        <>
+                            <StyledButton  onClick={() => appendShort()}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
+                            <StyledButton onClick={() => appendLong()}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
+                            <StyledButton onClick={() => appendSpace()}>space<p style={smallText}>End of character</p></StyledButton>
+                            <StyledButton onClick={() => appendDoubleSpace()}>double space<p style={smallText}>End of word</p></StyledButton>
+                        </>
+                    )}
                     <TextField
                         key={direction}
                         placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
