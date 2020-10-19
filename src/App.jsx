@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useRef} from 'react';
+import React, {useReducer} from 'react';
 import './App.css';
 import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
 import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
@@ -18,6 +18,8 @@ const PASTE_TEXT = 'PASTE_TEXT';
 const CHANGE_TEXT = 'CHANGE_TEXT';
 const OPEN_DIALOG = 'OPEN_DIALOG';
 const CLOSE_DIALOG = 'CLOSE_DIALOG';
+const TYPE_HORSE = 'TYPE_HORSE';
+const TYPING = 'TYPING';
 
 const reducer = (state, action) => {
     const {direction, text, translation} = state;
@@ -37,6 +39,19 @@ const reducer = (state, action) => {
                     text: action.value,
                     translation: translationFunction(action.value),
                 }
+            case TYPING:
+                return {
+                    ...state,
+                    text: action.value,
+                    translation: translationFunction(action.value),
+                }
+            case TYPE_HORSE:
+                return {
+                    ...state,
+                    text: text + action.value,
+                    translation: horseToAscii(text + action.value),
+                    direction: HORSE_TO_ASCII,
+                }    
             case PASTE_TEXT:
                 const first = action.value.trimStart().slice(0, 2);
                 const pasteDirection = (first === '🐎' || first === '🐴') ? HORSE_TO_ASCII : ASCII_TO_HORSE;
@@ -92,6 +107,19 @@ const SmXsColumn = withWidth()((props) => {
     return <ButtonGroup {...props} orientation={orientation}/>
 })
 
+const smallText = {
+    display: 'block',
+    fontSize: '8px',
+    marginTop: 0,
+    color: 'grey',
+  };
+
+  const StyledButton = withStyles({
+    label: {
+      flexDirection: 'column',
+    },
+  })(Button);
+
 const A_HORSE_OF_COURSE_ASCII = 'A horse, of course!';
 const A_HORSE_OF_COURSE_HORSE = asciiToHorse(A_HORSE_OF_COURSE_ASCII);
 const LABEL_HORSE_CODE = "Horse Code";
@@ -101,7 +129,6 @@ function App() {
 
     const [, setClipboard] = useClippy();
     const [{direction, text, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
-    const ref = useRef(null);
 
     const toggle = () => dispatch({type: TOGGLE});
 
@@ -122,21 +149,12 @@ function App() {
         }
     }
 
-
     const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
     const onChange = evt => {
+        dispatch({type: TYPING, value: evt.target.value})
         evt.persist();
         debouncedDispatchChangeText(evt);
     }
-
-    useEffect(() => {
-        if (ref && ref.current) {
-            ref.current.focus();
-            if (text === '') {
-                ref.current.value = '';
-            }
-        }
-    });
 
     return (
     <div className="App" onPaste={onPaste} onCopy={onCopy}>
@@ -145,13 +163,20 @@ function App() {
             <h1>Horse Code</h1>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
+                    {direction === HORSE_TO_ASCII && (
+                        <>
+                            <StyledButton  onClick={()=>{dispatch({type: TYPE_HORSE, value:'🐴', text: '🐴'})}}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
+                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:'🐎', text:'🐎'})}}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
+                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:' ', text:' '})}}>space<p style={smallText}>End of character</p></StyledButton> 
+                            <StyledButton onClick={()=>{dispatch({type: TYPE_HORSE, value:'  ', text:' '})}}>double space<p style={smallText}>End of word</p></StyledButton> 
+                        </>
+                    )}
                     <TextField
                         key={direction}
                         placeholder={direction === ASCII_TO_HORSE ? A_HORSE_OF_COURSE_ASCII : A_HORSE_OF_COURSE_HORSE}
-                        inputRef={ref}
                         fullWidth={true}
                         label={direction === HORSE_TO_ASCII ? LABEL_HORSE_CODE : LABEL_TEXT}
-                        defaultValue={text}
+                        value={text}
                         onChange={onChange}
                         onCopy={onCopy}
                         onPaste={onPaste}
