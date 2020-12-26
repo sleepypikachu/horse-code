@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useRef} from 'react';
+import React, {useEffect, useReducer, useRef, useCallback} from 'react';
 import './App.css';
 import {ASCII_TO_HORSE, asciiToHorse, HORSE_TO_ASCII, horseToAscii} from './translate';
 import {Button, ButtonGroup, Container, Grid} from "@material-ui/core";
@@ -109,6 +109,16 @@ const A_HORSE_OF_COURSE_ASCII = 'A horse, of course!';
 const A_HORSE_OF_COURSE_HORSE = asciiToHorse(A_HORSE_OF_COURSE_ASCII);
 const LABEL_HORSE_CODE = "Horse Code";
 const LABEL_TEXT = "Text";
+const NATIVE_INPUT_VALUE_SETTER = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+
+const nativeAppendTextArea = (s, ref) => () => {
+    if (ref && ref.current) {
+        const input = ref.current;
+        NATIVE_INPUT_VALUE_SETTER.call(input, input.value + s);
+        const evt = new Event('input', { bubbles: true } );
+        input.dispatchEvent(evt);
+    }
+}
 
 function App() {
 
@@ -116,45 +126,36 @@ function App() {
     const [{direction, text, showAbout, translation}, dispatch] = useReducer(reducer, initialState);
     const ref = useRef(null);
 
-    const toggle = () => dispatch({type: TOGGLE});
+    const toggle = useCallback(() => dispatch({type: TOGGLE}), [dispatch]);
 
-    const copy = () => setClipboard(translation);
+    const copy = useCallback(() => setClipboard(translation), [setClipboard, translation]);
 
-    const clear = () => dispatch({type: CHANGE_TEXT, value: ''});
+    const clear = useCallback(() => dispatch({type: CHANGE_TEXT, value: ''}), [dispatch]);
 
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-    const nativeAppendTextArea = s => () => {
-        if (ref && ref.current) {
-            const input = ref.current;
-            nativeInputValueSetter.call(input, input.value + s);
-            const evt = new Event('input', { bubbles: true } );
-            input.dispatchEvent(evt);
-        }
-    }
+    const appendShort = useCallback(nativeAppendTextArea('🐴', ref), [ref]);
+    const appendLong = useCallback(nativeAppendTextArea('🐎', ref), [ref]);
+    const appendSpace = useCallback(nativeAppendTextArea(' ', ref), [ref]);
+    const appendDoubleSpace = useCallback(nativeAppendTextArea('  ', ref), [ref]);
 
-    const appendShort = nativeAppendTextArea('🐴');
-    const appendLong = nativeAppendTextArea('🐎');
-    const appendSpace = nativeAppendTextArea(' ');
-    const appendDoubleSpace = nativeAppendTextArea('  ');
-
-    const onPaste = (evt) => {
+    const onPaste = useCallback((evt) => {
         evt.preventDefault();
         dispatch({type: PASTE_TEXT, value: evt.clipboardData.getData("text")});
-    }
+    }, [dispatch]);
 
-    const onCopy = (evt) => {
+    const onCopy = useCallback((evt) => {
         if (evt.target && (evt.target.selectionStart === evt.target.selectionEnd) ) {
             evt.preventDefault();
             evt.stopPropagation();
             setClipboard(translation);
         }
-    }
+    }, [setClipboard, translation]);
 
-    const debouncedDispatchChangeText = useDebounceCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), 500, false);
-    const onChange = evt => {
+    const changeText = useCallback(evt => dispatch({type: CHANGE_TEXT, value: evt.target.value}), [dispatch]);
+    const debouncedDispatchChangeText = useDebounceCallback(changeText, 500, false);
+    const onChange = useCallback(evt => {
         evt.persist();
         debouncedDispatchChangeText(evt);
-    }
+    }, [debouncedDispatchChangeText]);
 
     useEffect(() => {
         if (ref && ref.current) {
@@ -165,6 +166,9 @@ function App() {
         }
     });
 
+    const openDialog = useCallback(() => dispatch({type: OPEN_DIALOG}), [dispatch]);
+    const closeDialog = useCallback(() => dispatch({type: CLOSE_DIALOG}), [dispatch]);
+
     return (
     <div className="App" onPaste={onPaste} onCopy={onCopy}>
         <ForkMeOnGithub repo={"https://github.com/sleepypikachu/horse-code"}/>
@@ -174,10 +178,10 @@ function App() {
                 <Grid item>
                     {direction === HORSE_TO_ASCII && (
                         <>
-                            <StyledButton  onClick={() => appendShort()}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
-                            <StyledButton onClick={() => appendLong()}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
-                            <StyledButton onClick={() => appendSpace()}>space<p style={smallText}>End of character</p></StyledButton>
-                            <StyledButton onClick={() => appendDoubleSpace()}>double space<p style={smallText}>End of word</p></StyledButton>
+                            <StyledButton  onClick={appendShort}><span role='img' aria-label='Horse Head Emoji'>🐴</span><p style={smallText}>short</p></StyledButton>
+                            <StyledButton onClick={appendLong}><span role='img' aria-label='Horse Emoji'>🐎</span><p style={smallText}>long</p></StyledButton>
+                            <StyledButton onClick={appendSpace}>space<p style={smallText}>End of character</p></StyledButton>
+                            <StyledButton onClick={appendDoubleSpace}>double space<p style={smallText}>End of word</p></StyledButton>
                         </>
                     )}
                     <TextField
@@ -197,11 +201,11 @@ function App() {
                 </Grid>
                 <Grid item container justify={"space-between"}>
                     <Hidden smDown={true}>
-                        <Button variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</Button>
+                        <Button variant={"outlined"} onClick={openDialog}>About</Button>
                     </Hidden>
                     <Grid item sm={12} xs={12} md={"auto"}>
                         <SmXsColumn variant={"outlined"}>
-                            <SmXsButton variant={"outlined"} onClick={() => dispatch({type: OPEN_DIALOG})}>About</SmXsButton>
+                            <SmXsButton variant={"outlined"} onClick={openDialog}>About</SmXsButton>
                             <ContentButton onClick={copy} startIcon={<FileCopy/>}>Copy</ContentButton>
                             <ContentButton onClick={clear} startIcon={<Bathtub/>}>Clear</ContentButton>
                             <Button color={"primary"} onClick={toggle} startIcon={<Cached/>}>Toggle</Button>
@@ -210,7 +214,7 @@ function App() {
                 </Grid>
             </Grid>
         </Container>
-        <AboutDialog open={showAbout} close={() => dispatch({type: CLOSE_DIALOG})}/>
+        <AboutDialog open={showAbout} close={closeDialog}/>
     </div>
     );
 }
